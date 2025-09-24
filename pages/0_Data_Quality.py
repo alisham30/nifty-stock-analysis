@@ -8,8 +8,8 @@ BASE_DIR = os.getcwd()
 OUT_DIR  = os.path.join(BASE_DIR, "output")
 REPORT   = os.path.join(OUT_DIR, "data_quality_report.json")
 
-st.set_page_config(page_title="Data Quality", page_icon="🧪", layout="wide")
-st.title("🧪 Data Quality Report")
+st.set_page_config(page_title="Data Quality", layout="wide")
+st.title("Data Quality Report")
 
 colA, colB = st.columns([1,4])
 with colA:
@@ -31,16 +31,17 @@ if os.path.exists(REPORT):
     top = st.container()
     with top:
         st.subheader("Summary")
-        c1, c2 = st.columns(2)
+        c1, c2, c3 = st.columns(3)
         c1.metric("Files scanned", data.get("num_files", 0))
-        c2.caption(f"Run at: {data.get('run_ts', 'n/a')}")
+        c2.metric("Quality Score", f"{data.get('quality_score', 0)} / 100")
+        c3.caption(f"Run at: {data.get('run_ts', 'n/a')}")
 
     st.divider()
 
     # Checks table
     checks_df = pd.DataFrame(data.get("checks", []))
     st.subheader("Checks")
-    st.dataframe(checks_df, width="stretch")   # ✅ replaced deprecated param
+    st.dataframe(checks_df, width="stretch")   # ✅ future-proof param
 
     # Example files
     with st.expander("File examples"):

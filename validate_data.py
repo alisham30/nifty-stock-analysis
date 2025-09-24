@@ -7,18 +7,19 @@ import os, glob, json
 import pandas as pd
 from datetime import datetime
 
-# Use current working directory
+# Use current working directory for portability
 BASE_DIR = os.getcwd()
 DATA_DIR = os.path.join(BASE_DIR, "data")
-OUT_DIR  = os.path.join(BASE_DIR, "output")
+OUT      = os.path.join(BASE_DIR, "output")
 
 def run_checks():
     files = glob.glob(os.path.join(DATA_DIR, "*.csv"))
     report = {
         "run_ts": datetime.utcnow().isoformat() + "Z",
         "num_files": len(files),
-        "file_examples": [os.path.basename(f) for f in files[:5]],
-        "checks": []
+        "file_examples": [os.path.basename(f) for f in files[:5]],  # cleaner display
+        "checks": [],
+        "quality_score": 0
     }
 
     if not files:
@@ -27,10 +28,10 @@ def run_checks():
             "status": "FAIL",
             "details": "No CSV files found"
         })
-        os.makedirs(OUT_DIR, exist_ok=True)
-        with open(os.path.join(OUT_DIR, "data_quality_report.json"), "w") as f:
+        os.makedirs(OUT, exist_ok=True)
+        with open(os.path.join(OUT, "data_quality_report.json"), "w") as f:
             json.dump(report, f, indent=2)
-        print("❌ No CSVs found.")
+        print("No CSVs found.")
         return report
 
     df = pd.concat([pd.read_csv(f) for f in files], ignore_index=True)
@@ -47,7 +48,7 @@ def run_checks():
     # Numeric / non-negative prices
     df["Prev Close"] = pd.to_numeric(df["Prev Close"], errors="coerce")
     df["Close"]      = pd.to_numeric(df["Close"], errors="coerce")
-    neg_prev  = int((df["Prev Close"] < 0).sum())
+    neg_prev = int((df["Prev Close"] < 0).sum())
     neg_close = int((df["Close"] < 0).sum())
     report["checks"].append({
         "name": "non_negative_prices",
@@ -72,12 +73,24 @@ def run_checks():
         "duplicates": dups
     })
 
-    os.makedirs(OUT_DIR, exist_ok=True)
-    out_path = os.path.join(OUT_DIR, "data_quality_report.json")
-    with open(out_path, "w") as f:
+    # ---------------- Quality Score ----------------
+    # PASS = 1 point, WARN = 0.5, FAIL = 0
+    total = len(report["checks"])
+    score = 0
+    for chk in report["checks"]:
+        if chk["status"] == "PASS":
+            score += 1
+        elif chk["status"] == "WARN":
+            score += 0.5
+        # FAIL adds 0
+    report["quality_score"] = round((score / total) * 100, 1) if total > 0 else 0
+
+    # Save report
+    os.makedirs(OUT, exist_ok=True)
+    with open(os.path.join(OUT, "data_quality_report.json"), "w") as f:
         json.dump(report, f, indent=2)
 
-    print(f"✅ Wrote report to {out_path}\n", json.dumps(report, indent=2))
+    print("Wrote data_quality_report.json\n", json.dumps(report, indent=2))
     return report
 
 if __name__ == "__main__":
