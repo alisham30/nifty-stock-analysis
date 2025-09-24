@@ -1,7 +1,5 @@
 streamlit
+pyspark
 pandas
 numpy
-pyarrow
-pyspark
-duckdb
 plotly
