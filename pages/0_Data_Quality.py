@@ -1,7 +1,7 @@
-import os, json, sys, subprocess
+import os, json
 import pandas as pd
 import streamlit as st
-import validate_data  # direct import instead of subprocess
+import validate_data  # direct import, no subprocess
 
 # Use current working directory
 BASE_DIR = os.getcwd()
@@ -9,12 +9,12 @@ OUT_DIR  = os.path.join(BASE_DIR, "output")
 REPORT   = os.path.join(OUT_DIR, "data_quality_report.json")
 
 st.set_page_config(page_title="Data Quality", page_icon="🧪", layout="wide")
-st.title("Data Quality Report")
+st.title("🧪 Data Quality Report")
 
 colA, colB = st.columns([1,4])
 with colA:
     if st.button("Run validation now"):
-        # Call the function directly, not subprocess
+        # Call the function directly
         report = validate_data.run_checks()
         st.success("Validation finished.")
         st.json(report)
@@ -40,11 +40,11 @@ if os.path.exists(REPORT):
     # Checks table
     checks_df = pd.DataFrame(data.get("checks", []))
     st.subheader("Checks")
-    st.dataframe(checks_df, use_container_width=True)
+    st.dataframe(checks_df, width="stretch")   # ✅ replaced deprecated param
 
     # Example files
     with st.expander("File examples"):
         st.write("\n".join(data.get("file_examples", [])))
 
 else:
-    st.warning("No report found. Click **Run validation now** to generate one.")
+    st.warning("⚠️ No report found. Click **Run validation now** to generate one.")

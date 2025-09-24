@@ -7,7 +7,7 @@ import os, glob, json
 import pandas as pd
 from datetime import datetime
 
-# Use current working directory (works on Docker + Render)
+# Use current working directory
 BASE_DIR = os.getcwd()
 DATA_DIR = os.path.join(BASE_DIR, "data")
 OUT_DIR  = os.path.join(BASE_DIR, "output")
