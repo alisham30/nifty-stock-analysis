@@ -1,25 +1,24 @@
-
 import os, json, sys, subprocess
 import pandas as pd
 import streamlit as st
+import validate_data  # direct import instead of subprocess
 
-REPORT = "/home/jovyan/work/output/data_quality_report.json"
+# Use current working directory
+BASE_DIR = os.getcwd()
+OUT_DIR  = os.path.join(BASE_DIR, "output")
+REPORT   = os.path.join(OUT_DIR, "data_quality_report.json")
 
 st.set_page_config(page_title="Data Quality", page_icon="🧪", layout="wide")
-st.title(" Data Quality Report")
+st.title("Data Quality Report")
 
 colA, colB = st.columns([1,4])
 with colA:
     if st.button("Run validation now"):
-        res = subprocess.run(
-            [sys.executable, "validate_data.py"],
-            cwd="/home/jovyan/work",
-            capture_output=True,
-            text=True
-        )
+        # Call the function directly, not subprocess
+        report = validate_data.run_checks()
         st.success("Validation finished.")
-        st.code(res.stdout + ("\n" + res.stderr if res.stderr else ""))
-        st.rerun()  
+        st.json(report)
+        st.rerun()
 
 with colB:
     st.caption("Reads output/data_quality_report.json and summarizes checks.")
