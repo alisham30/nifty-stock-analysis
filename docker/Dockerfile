@@ -1,31 +1,17 @@
-# Use official Spark + Python base
 FROM jupyter/pyspark-notebook:latest
 
-# Set working directory inside container
+# Set working directory
 WORKDIR /home/jovyan/work
 
-# Install system dependencies
-USER root
-RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk && \
-    apt-get clean
+# Copy project files
+COPY . /home/jovyan/work
 
-# Set Java environment variables
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-ENV PATH=$JAVA_HOME/bin:$PATH
+# Install Python dependencies
+RUN pip install --no-cache-dir streamlit plotly pandas
 
-# Switch back to jovyan (non-root user in Jupyter images)
-USER jovyan
-
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy app code into container
-COPY . .
-
-# Expose Streamlit port
+# Expose both ports: Jupyter (8888) and Streamlit (8501)
+EXPOSE 8888
 EXPOSE 8501
 
-# Run Streamlit
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Default entrypoint: start Jupyter (so you get the token URL)
+CMD ["start-notebook.sh"]
